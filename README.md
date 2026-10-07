@@ -1,5 +1,22 @@
 :warning: This project is EOL and intended to be replaced by a Pulse Audio version. See: https://github.com/pimoroni/pivumeter-pulseaudio
 
+> **About this fork (`no-wiringpi` branch)**
+>
+> Upstream depends on wiringPi, which is no longer packaged for Raspberry Pi OS
+> (bullseye and later), so it cannot be built on current systems (see upstream issue #33).
+> This fork removes that dependency:
+>
+> * The I2C devices (`speaker-phat`, `scroll-phat`, `scroll-phat-hd`) talk to `/dev/i2c-1`
+>   directly through the kernel i2c-dev driver (`src/i2c.c`). Set `PIVUMETER_I2C_DEV`
+>   to use another bus.
+> * `blinkt` and `phat-beat` drive GPIO pins directly and are **not built** in this fork.
+> * Fixes a divide-by-zero (SIGFPE in the playing process) when a full-scale negative
+>   sample (-32768) is metered.
+>
+> Tested with a Speaker pHAT on a Raspberry Pi Zero W running Raspberry Pi OS (Debian 13
+> "trixie", 32-bit) and on Raspbian 10 "buster"; also builds on Debian 13 arm64.
+> `setup.sh` is unchanged from upstream and still tries to install wiringPi; build manually as below.
+
 # Pi VU Meter
 
 ## ALSA Plugin to display a VU meter on various Raspberry Pi add-ons
@@ -25,7 +42,7 @@ if you'd rather compile and set things up yourself, read on!
 #### pre-requisite
 
 ```
-sudo apt-get install build-essential autoconf automake libtool libasound2-dev libfftw3-dev wiringpi
+sudo apt-get install build-essential autoconf automake libtool libasound2-dev libfftw3-dev
 ```
 
 #### clone repository
@@ -64,8 +81,8 @@ Specify which device to display the VU meter on.
 
 Supported devices:
 
-* blinkt - Simple amplitude meter through Green->Yellow->Red
-* phat-beat - Simple stereo amplitude meter
+* blinkt - Simple amplitude meter through Green->Yellow->Red (not built in this fork)
+* phat-beat - Simple stereo amplitude meter (not built in this fork)
 * speaker-phat - Simple mono amplitude meter
 * scroll-phat - displays 11-band FFT-based EQ
 * scroll-phat-hd - displays 17-band FFT-based EQ

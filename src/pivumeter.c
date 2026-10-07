@@ -107,6 +107,7 @@ static int get_channel_level(int channel, snd_pcm_scope_ameter_t *level, snd_pcm
     for (n = size1; n > 0; n--) {
         s = *ptr;
         if (s < 0) s = -s;
+        if (s > 32767) s = 32767; /* abs(-32768) would make 32767/levelchan zero below */
         if (s > lev) lev = s;
         ptr++;
     }
@@ -115,6 +116,7 @@ static int get_channel_level(int channel, snd_pcm_scope_ameter_t *level, snd_pcm
     for (n = size2; n > 0; n--) {
         s = *ptr;
         if (s < 0) s = -s;
+        if (s > 32767) s = 32767; /* abs(-32768) would make 32767/levelchan zero below */
         if (s > lev) lev = s;
         ptr++;
     }
@@ -143,7 +145,7 @@ static void level_update(snd_pcm_scope_t * scope)
     snd_pcm_uframes_t offset, cont;
     unsigned int channels;
     unsigned int ms;
-    int max_decay, max_decay_temp;
+    int max_decay, max_decay_temp = 0;
 
     int meter_level_l = 0;
     int meter_level_r = 0; 

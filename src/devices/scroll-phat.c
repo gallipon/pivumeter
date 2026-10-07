@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
+#include "../i2c.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -30,9 +29,9 @@ static const long fft_max[] = { 12317168L, 7693595L, 5863615L, 4082974L, 5836037
 static void clear_display(void){
 	unsigned int n;
 	for(n = 0; n < 11; n++){
-		wiringPiI2CWriteReg8(i2c, 0x1 + n, 0b00000000);
+		pivu_i2c_write_reg8(i2c, 0x1 + n, 0b00000000);
 	}
-	wiringPiI2CWriteReg8(i2c, 0x0c, 0xff);
+	pivu_i2c_write_reg8(i2c, 0x0c, 0xff);
 }
 
 static void cleanup(void){
@@ -43,14 +42,14 @@ static void cleanup(void){
 }
 
 static int init(void){
-    i2c = wiringPiI2CSetup(0x60);
+    i2c = pivu_i2c_open(0x60);
     if(i2c == -1){
         fprintf(stderr, "Unable to connect to Scroll pHAT");
         return -1;
     }
     
-    wiringPiI2CWriteReg8(i2c, 0x0, 0b00000011);
-    wiringPiI2CWriteReg8(i2c, 0x19, 32);
+    pivu_i2c_write_reg8(i2c, 0x0, 0b00000011);
+    pivu_i2c_write_reg8(i2c, 0x19, 32);
 
     clear_display();
 
@@ -145,11 +144,11 @@ static void update(int meter_level_l, int meter_level_r, snd_pcm_scope_ameter_t 
 			display = ((0b0000011111 << bins[n]) >> 5) & 0b00011111;
 		}
 		
-		wiringPiI2CWriteReg8(i2c, 0x1 + n, display);
+		pivu_i2c_write_reg8(i2c, 0x1 + n, display);
 		
 	}
 	
-	wiringPiI2CWriteReg8(i2c, 0x0c, 0xff);
+	pivu_i2c_write_reg8(i2c, 0x0c, 0xff);
 }
 
 device scroll_phat(){

@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
+#include "../i2c.h"
 #include "../pivumeter.h"
 
 static int stupid_led_mappings[10] = {0, 1, 2, 4, 6, 8, 10, 12, 14, 16};
@@ -12,23 +11,23 @@ static void clear_display(void){
     int led;
 
     for(led = 0; led < 18; led++){
-        wiringPiI2CWriteReg8(i2c, 0x01 + led, 0x0);
+        pivu_i2c_write_reg8(i2c, 0x01 + led, 0x0);
     }
 
-    wiringPiI2CWriteReg8(i2c, 0x16, 0x01);
+    pivu_i2c_write_reg8(i2c, 0x16, 0x01);
 }
 
 static int init(void){
-    i2c = wiringPiI2CSetup(0x54);
+    i2c = pivu_i2c_open(0x54);
     if(i2c == -1){
         fprintf(stderr, "Unable to connect to Speaker pHAT");
         return -1;
     }
 
-    wiringPiI2CWriteReg8(i2c, 0x00, 0x01);
-    wiringPiI2CWriteReg8(i2c, 0x13, 0xff);
-    wiringPiI2CWriteReg8(i2c, 0x14, 0xff);
-    wiringPiI2CWriteReg8(i2c, 0x15, 0xff);
+    pivu_i2c_write_reg8(i2c, 0x00, 0x01);
+    pivu_i2c_write_reg8(i2c, 0x13, 0xff);
+    pivu_i2c_write_reg8(i2c, 0x14, 0xff);
+    pivu_i2c_write_reg8(i2c, 0x15, 0xff);
 
     clear_display();
 
@@ -64,9 +63,9 @@ static void update(int meter_level_l, int meter_level_r, snd_pcm_scope_ameter_t 
             index = 9 - led;
         }
 
-        wiringPiI2CWriteReg8(i2c, 0x01 + stupid_led_mappings[index], val);
+        pivu_i2c_write_reg8(i2c, 0x01 + stupid_led_mappings[index], val);
     }
-    wiringPiI2CWriteReg8(i2c, 0x16, 0x01);
+    pivu_i2c_write_reg8(i2c, 0x16, 0x01);
 
 }
 

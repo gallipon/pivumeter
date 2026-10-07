@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
+#include "../i2c.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -68,13 +67,13 @@ static void sphd_set_pixel(unsigned int x, unsigned int y, unsigned int brightne
 	
 	unsigned int index = x * 16 + y;
 	
-	wiringPiI2CWriteReg8(i2c, SPHD_COLOR_OFFSET + index, brightness);
+	pivu_i2c_write_reg8(i2c, SPHD_COLOR_OFFSET + index, brightness);
 }
 
 static void clear_display(void){
 	unsigned int n;
 	for(n = 0; n < 144; n++){
-		wiringPiI2CWriteReg8(i2c, SPHD_COLOR_OFFSET + n, 0b00000000);
+		pivu_i2c_write_reg8(i2c, SPHD_COLOR_OFFSET + n, 0b00000000);
 	}
 }
 
@@ -86,26 +85,26 @@ static void cleanup(void){
 }
 
 static int init(void){
-    i2c = wiringPiI2CSetup(0x74);
+    i2c = pivu_i2c_open(0x74);
     if(i2c == -1){
         fprintf(stderr, "Unable to connect to Scroll pHAT");
         return -1;
     }
     
-    wiringPiI2CWriteReg8(i2c, SPHD_BANK_ADDRESS_REGISTER, SPHD_CONFIG_BANK); // Switch to config bank
-    wiringPiI2CWriteReg8(i2c, SPHD_FRAME_REGISTER, current_frame); // Display frame 0
-    wiringPiI2CWriteReg8(i2c, SPHD_MODE_REGISTER, SPHD_PICTURE_MODE); // Switch to Picture Mode
-    wiringPiI2CWriteReg8(i2c, SPHD_AUDIOSYNC_REGISTER, 0); // Disable Audio Sync
+    pivu_i2c_write_reg8(i2c, SPHD_BANK_ADDRESS_REGISTER, SPHD_CONFIG_BANK); // Switch to config bank
+    pivu_i2c_write_reg8(i2c, SPHD_FRAME_REGISTER, current_frame); // Display frame 0
+    pivu_i2c_write_reg8(i2c, SPHD_MODE_REGISTER, SPHD_PICTURE_MODE); // Switch to Picture Mode
+    pivu_i2c_write_reg8(i2c, SPHD_AUDIOSYNC_REGISTER, 0); // Disable Audio Sync
     
     unsigned int x;
-    wiringPiI2CWriteReg8(i2c, SPHD_BANK_ADDRESS_REGISTER, 0); // Switch to bank 0 / AKA frame zero
+    pivu_i2c_write_reg8(i2c, SPHD_BANK_ADDRESS_REGISTER, 0); // Switch to bank 0 / AKA frame zero
     for(x = 0; x < 17; x++){
-		wiringPiI2CWriteReg8(i2c, x, 255); // Enable all LEDs for frame zero
+		pivu_i2c_write_reg8(i2c, x, 255); // Enable all LEDs for frame zero
 	}
 	
-    /*wiringPiI2CWriteReg8(i2c, SPHD_BANK_ADDRESS_REGISTER, 1); // Switch to bank 1
+    /*pivu_i2c_write_reg8(i2c, SPHD_BANK_ADDRESS_REGISTER, 1); // Switch to bank 1
     for(x = 0; x < 17; x++){
-		wiringPiI2CWriteReg8(i2c, x, 255); // Enable all LEDs for frame one
+		pivu_i2c_write_reg8(i2c, x, 255); // Enable all LEDs for frame one
 	}*/
     
     
@@ -176,7 +175,7 @@ static void update(int meter_level_l, int meter_level_r, snd_pcm_scope_ameter_t 
 	unsigned int bins[SPHD_NUM_COLS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int groupsize = 5;
 
-	//wiringPiI2CWriteReg8(i2c, SPHD_BANK_ADDRESS_REGISTER, !current_frame); 
+	//pivu_i2c_write_reg8(i2c, SPHD_BANK_ADDRESS_REGISTER, !current_frame); 
 	
 	unsigned int col;
 	for(col = 0; col < SPHD_NUM_COLS; col++){
@@ -218,7 +217,7 @@ static void update(int meter_level_l, int meter_level_r, snd_pcm_scope_ameter_t 
 
 		
 	}
-	//wiringPiI2CWriteReg8(i2c, SPHD_FRAME_REGISTER, !current_frame);
+	//pivu_i2c_write_reg8(i2c, SPHD_FRAME_REGISTER, !current_frame);
 	//fprintf(stderr, "Displaying frame %d\n", !current_frame);
 	//current_frame = !current_frame;
 }
